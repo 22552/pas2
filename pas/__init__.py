@@ -348,8 +348,9 @@ def flask_blueprint(BluePrintName: str="pas2"):
             response.set_cookie('session', sid)
 
         return response
-        warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
+    warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
