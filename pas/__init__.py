@@ -217,6 +217,16 @@ def run(port: int) -> None:
 async def speedapp_http(scope: Dict[str, Any], receive: Callable, send: Callable) -> None:
     global headers
     headers = [['content-type', 'text/html;charset=utf-8']]
+    request_headers = {k.decode('ascii').lower(): v.decode('ascii') for k, v in scope.get('headers', [])}
+    user_agent = request_headers.get('user-agent', '')
+    host = request_headers.get('host', '')
+    raw_cookie = request_headers.get('cookie', '')
+    cookie_dict = {}
+    if raw_cookie:
+        for pair in raw_cookie.split('; '):
+            if '=' in pair:
+                k, v = pair.split('=', 1)
+                cookie_dict[k.strip()] = v
     more_body = True
     body_bytes = b""
     while more_body:
@@ -250,9 +260,9 @@ async def speedapp_http(scope: Dict[str, Any], receive: Callable, send: Callable
     e = request(scope["method"],
                 scope["path"],
                 scope.get("client", ["", ""])[0],
-                "", # UA extraction from scope headers is complex, left as placeholder
-                "", # Host placeholder
-                {}, # Cookie placeholder
+                user_agent,
+                host,
+                cookie_dict,
                 scope,
                 datas,
                 post_data,
@@ -350,6 +360,7 @@ def flask_blueprint(BluePrintName: str="pas2"):
         return response
     warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
