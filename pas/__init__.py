@@ -132,6 +132,8 @@ class responce():
 
 class file():
     def __init__(self, filename: str, download: bool = False, name: Optional[str] = None):
+        filename = os.path.basename(filename)
+        filename = os.path.join(setting["static_folder"], filename)
         mime = magic.Magic(mime=True)
         self.mimetype: str = mime.from_file(filename)
         self.download = download
@@ -177,7 +179,7 @@ def session_set() -> str:
     return sessionid
 
 def template(filename: str, **data: Any) -> str:
-    env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
+    env = Environment(loader=FileSystemLoader('./', encoding='utf8'),autoescape=select_autoescape(['html', 'xml']))
     tmpl = env.get_template(setting["template"] + filename)
     return tmpl.render(data)
 
@@ -427,6 +429,7 @@ def flask_blueprint(BluePrintName: str="pas2"):
         return response
     warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
