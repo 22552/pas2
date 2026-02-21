@@ -15,6 +15,7 @@ except ImportError:
 from wsgiref.util import setup_testing_defaults, shift_path_info, request_uri
 from wsgiref.simple_server import make_server
 from jinja2 import Environment, FileSystemLoader
+import warnings
 
 __version__ = "0.1.0"
 
@@ -301,9 +302,54 @@ async def speedapp(scope: Dict[str, Any], receive: Callable, send: Callable) -> 
             if event['type'] == 'websocket.receive':
                 await pagefunc["WebSocket"].receive(send, event)
 
+def flask_blueprint(BluePrintName: str="pas2"):
+    import flask
+    from flask import request as flask_req, make_response
 
+    bp = flask.Blueprint(BluePrintName, __name__)
 
+    @bp.route('/', defaults={'path': ''}, methods=['GET', 'POST', 'PUT', 'DELETE'])
+    @bp.route('/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+    def login(path):
+        environ = flask_req.environ
+        cookie_dict = flask_req.cookies.to_dict()
+        
+        sid = cookie_dict.get("session")
+        new_sid_created = False
 
+        if not sid or sid not in session:
+            sid = session_set()
+            new_sid_created = True
+
+        e = request(
+            flask_req.method,
+            path,
+            flask_req.remote_addr or "",
+            flask_req.user_agent.string or "",
+            flask_req.host,
+            cookie_dict,
+            environ,
+            flask_req.args.to_dict(flat=False),
+            flask_req.form.to_dict(),
+            sid
+        )
+
+        returns = pagefunc[flask_req.method](e)
+
+        if isinstance(returns, file):
+            response = make_response(open(returns.filename, "rb").read())
+            response.headers['Content-Type'] = returns.mimetype
+        elif isinstance(returns, (dict, list)):
+            response = make_response(flask.jsonify(returns))
+        else:
+            response = make_response(str(returns))
+
+        if new_sid_created:
+            response.set_cookie('session', sid)
+
+        return response
+        warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
+    return bp
 
 
 
