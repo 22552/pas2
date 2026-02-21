@@ -32,6 +32,8 @@ class headers_object:
         if not hasattr(_headers_tl, "val"):
             _headers_tl.val = []
             return _headers_tl.val
+    def set(self, new_list):
+        _headers_storage.set(new_list)
     def append(self, x): self._get_current_list().append(x)
     def extend(self, x): self._get_current_list().extend(x)
     def insert(self, i, x): self._get_current_list().insert(i, x)
@@ -213,7 +215,7 @@ def app(environ: Dict[str, Any], start_response: Callable) -> Iterable[bytes]:
         return [b"Too Many Requests"]
     apps = environ
     status = '200 OK'
-    headers = [('Content-type', 'text/html; charset=utf-8')]
+    headers.set([('Content-type', 'text/html; charset=utf-8')])
     wsgi_input = environ["wsgi.input"]
     form = cgi.FieldStorage(fp=wsgi_input, environ=environ, keep_blank_values=True)
     
@@ -252,17 +254,17 @@ def app(environ: Dict[str, Any], start_response: Callable) -> Iterable[bytes]:
     returns = pagefunc[environ["REQUEST_METHOD"]](e)
     
     if isinstance(returns, (dict, list)):
-        headers = [('Content-type', 'application/json;')]
+        headers.set([('Content-type', 'application/json;')])
         ret = [str(returns).encode("utf-8")]
     elif isinstance(returns, file):
-        headers = [('Content-type', f'{returns.mimetype};')]
+        headers.set([('Content-type', f'{returns.mimetype};')])
         with open(returns.filename, mode='rb') as f:
             ret = [f.read()]
     elif isinstance(returns, mimeset):
-        headers = [('Content-type', f'{returns.mime};')]
+        headers.set([('Content-type', f'{returns.mime};')])
         ret = [returns.data]
     elif isinstance(returns, responce):
-        headers = [('Content-type', f'{returns.datas};')]
+        headers.set([('Content-type', f'{returns.datas};')])
         ret = [returns.data]
     else:
         ret = [str(returns).encode("utf-8")]
@@ -277,7 +279,7 @@ def run(port: int) -> None:
 
 async def speedapp_http(scope: Dict[str, Any], receive: Callable, send: Callable) -> None:
     global headers
-    headers = [['content-type', 'text/html;charset=utf-8']]
+    headers.set([['content-type', 'text/html;charset=utf-8']])
     request_headers = {k.decode('ascii').lower(): v.decode('ascii') for k, v in scope.get('headers', [])}
     user_agent = request_headers.get('user-agent', '')
     host = request_headers.get('host', '')
@@ -425,6 +427,7 @@ def flask_blueprint(BluePrintName: str="pas2"):
         return response
     warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
