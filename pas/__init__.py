@@ -16,6 +16,68 @@ from wsgiref.util import setup_testing_defaults, shift_path_info, request_uri
 from wsgiref.simple_server import make_server
 from jinja2 import Environment, FileSystemLoader
 import warnings
+import threading
+from contextvars import ContextVar
+
+_headers_tl = threading.local()
+_headers_cv = ContextVar("headers_cv", default=None)
+
+class headers_object:
+    def __init__(self):
+        pass
+    def _get_current_object(self):
+        obj = _headers_cv.get()
+        if obj is not None:
+            return obj
+        if not hasattr(_headers_tl, "val"):
+            _headers_tl.val = []
+            return _headers_tl.val
+    def append(self, x): self._get_current_list().append(x)
+    def extend(self, x): self._get_current_list().extend(x)
+    def insert(self, i, x): self._get_current_list().insert(i, x)
+    def __getitem__(self, i): return self._get_current_list()[i]
+    def __setitem__(self, i, x): self._get_current_list()[i] = x
+    def __delitem__(self, i): del self._get_current_list()[i]
+    def __len__(self): return len(self._get_current_list())
+    def __iter__(self): return iter(self._get_current_list())
+    def __contains__(self, x): return x in self._get_current_list()
+    def __repr__(self): return repr(self._get_current_list())
+    def __str__(self): return str(self._get_current_list()
+    def __iadd__(self, other):
+        self._get_current_list().__iadd__(other)
+        return self
+
+_apps_cv: ContextVar[dict] = ContextVar("apps_cv", default=None)
+_apps_tl = threading.local()
+
+class apps_object(dict):
+    def _get_current(self) -> dict:
+        current_scope = _apps_cv.get()
+        if current_scope is not None:
+            return current_scope
+        if not hasattr(_apps_tl, "data"):
+            _apps_tl.data = {}
+        return _apps_tl.data
+    def __getitem__(self, key): return self._get_current()[key]
+    def __setitem__(self, key, val): self._get_current()[key] = val
+    def __delitem__(self, key): del self._get_current()[key]
+    def __contains__(self, key): return key in self._get_current()
+    def __len__(self): return len(self._get_current())
+    def __iter__(self): return iter(self._get_current())
+    def get(self, key, default=None): return self._get_current().get(key, default)
+    def keys(self): return self._get_current().keys()
+    def values(self): return self._get_current().values()
+    def items(self): return self._get_current().items()
+    def pop(self, *args): return self._get_current().pop(*args)
+    def update(self, *args, **kwargs): return self._get_current().update(*args, **kwargs)
+    def clear(self): self._get_current().clear()
+    def __getattr__(self, name):
+        try:
+            return self._get_current()[name]
+        except KeyError:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+    def __repr__(self): return repr(self._get_current())
+
 
 __version__ = "0.1.0"
 
@@ -141,9 +203,8 @@ def samplepage(e: request) -> str:
     print(e.ip)
     return e.ip
 
-apps: Dict[str, Any] = {}
-headers: List[tuple] = []
-
+apps=apps_object()
+headers=headers_object()
 def app(environ: Dict[str, Any], start_response: Callable) -> Iterable[bytes]:
     setup_testing_defaults(environ)
     global apps, headers
@@ -364,6 +425,7 @@ def flask_blueprint(BluePrintName: str="pas2"):
         return response
     warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
