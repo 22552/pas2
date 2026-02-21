@@ -42,7 +42,7 @@ class headers_object:
     def __iter__(self): return iter(self._get_current_list())
     def __contains__(self, x): return x in self._get_current_list()
     def __repr__(self): return repr(self._get_current_list())
-    def __str__(self): return str(self._get_current_list()
+    def __str__(self): return str(self._get_current_list)
     def __iadd__(self, other):
         self._get_current_list().__iadd__(other)
         return self
@@ -425,6 +425,7 @@ def flask_blueprint(BluePrintName: str="pas2"):
         return response
     warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
