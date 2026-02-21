@@ -1,6 +1,9 @@
 import wsgiref
 import os,webbrowser
-from wsgiref.util import setup_testing_defaults,shift_path_info,request_uri
+from wsgiref.util import (
+    setup_testing_defaults,
+    shift_path_info,
+    request_uri)
 from wsgiref.simple_server import make_server
 from jinja2 import Environment, FileSystemLoader
 import cgi,sys
@@ -12,19 +15,14 @@ except ImportError:
 from collections import defaultdict, deque
 
 
-__version__="0.01"
-
-
-"""     gas風    """
-"""     jinja template engine     """
-""" debugモード, db管理, websockets, gas, session エラーハンドリング準備"""
+__version__="0.1.0"
 
 #簡易DoS対策の予定
 IP_LOGS = defaultdict(lambda: deque())
 MAX_REQ_PER_SECOND = 25
 rate_limit=True
 
-def rate_limiter(ip):
+def rate_limiter(ip: str):
     now = time.time()
     log = IP_LOGS[ip]
     while log and log[0] < now - 1:
@@ -317,6 +315,7 @@ async def speedapp(scope, receive, send):
                 if event['type'] == 'websocket.receive':
                     await pagefunc["WebSocket"].receive(send,event)
         await aaaaaaaa()
+
 
 
 
