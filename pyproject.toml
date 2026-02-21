@@ -3,14 +3,14 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "PythonAppScript"
-version = "0.2.0"
-description = "Lightweight ASGI/WSGI web framework"
+name = "pas2"
+version = "0.1.0"
+description = "gas and flask like simple web framework. asgi!"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    { name = "oywe", email = "you@example.com" }
+    { name = "22552", email = "you@example.com" }
 ]
 dependencies = [
     "jinja2>=3.0",
