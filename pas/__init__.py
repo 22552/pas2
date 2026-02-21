@@ -256,7 +256,11 @@ async def speedapp_http(scope: Dict[str, Any], receive: Callable, send: Callable
         datas = {k: v[0] for k, v in parse_qs(query_string).items()}
     except Exception:
         datas = {}
-
+    sid = cookie_dict.get("session")
+    new_sid_created = False
+    if not sid or sid not in session:
+        sid = session_set()
+        new_sid_created = True
     e = request(scope["method"],
                 scope["path"],
                 scope.get("client", ["", ""])[0],
@@ -266,7 +270,7 @@ async def speedapp_http(scope: Dict[str, Any], receive: Callable, send: Callable
                 scope,
                 datas,
                 post_data,
-                "") # Session placeholder for ASGI
+                sid)
 
     handler = pagefunc[scope["method"]]
     if hasattr(handler, '__call__'):
@@ -360,6 +364,7 @@ def flask_blueprint(BluePrintName: str="pas2"):
         return response
     warnings.warn("この関数はベータ版で非推奨です。", UserWarning)
     return bp
+
 
 
 
